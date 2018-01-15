@@ -8,7 +8,7 @@ import json
 max_err = 20
 min_id = 1                          # first message
 max_id = -1                         # no limit
-sleeptime = 0.1                     # half second sleep
+sleeptime = 0.1                     # 0.1 seconds sleep
 output_folder = './conversations/'  # output folder
 messages_dump_cnt = 100             # number of messages dumped to periodically write on disk
 

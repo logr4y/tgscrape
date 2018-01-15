@@ -93,14 +93,13 @@ def parse_message(soup):
                 description_class = soup.find('', class_=config.link_description_class)
                 preview_class = soup.find('', class_=config.link_preview_class)
 
-                return_object['link'] = {}
                 if title_class:
                     return_object['link']['title'] = title_class.text
                 if description_class:
                     return_object['link']['description'] = description_class.text
                 if preview_class:
                     return_object['link']['preview'] = preview_class['style'].split("'")[1]
-            
+
             if media['class'][0] == config.sticker_class:
                 return_object['photo'] = media['style'].split("'")[1]
 
@@ -139,7 +138,11 @@ def print_object(lobj):
         outputline += ' {}'.format(lobj['voice'])
 
     if lobj['link']['title'] or lobj['link']['description'] or lobj['link']['preview']:
-        link_msg = [lobj['link']['title'], lobj['link']['description'], lobj['link']['preview']]
+        link_msg = [
+            lobj['link']['title'],
+            lobj['link']['description'],
+            lobj['link']['preview']
+            ]
         link_msg = list(filter(None, link_msg))
         link_msg = ' - '.join(link_msg)
         if link_msg:
@@ -206,7 +209,7 @@ try:
 except KeyboardInterrupt:
     (exit_code, exit_msg) = 1, 'Stopped. Exiting...'
 except Exception as e:
-    (exit_code, exit_msg) = 1, 'ERROR: ' + e
+    (exit_code, exit_msg) = 1, 'ERROR: {}'.format(e)
 finally:
     print('\r  ')
     try:
