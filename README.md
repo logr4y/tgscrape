@@ -37,6 +37,19 @@ Commands:
     exit                        exits the program
     help                        this
 ```
+### Examples
+If you want to search all messages and names containing _either_ "foo" and "bar" type:
+```
+> search foo bar
+```
+If you want to search all messages and names containing the string "foo bar" type:
+```
+> search "foo bar"
+```
+To read all messages written on January 3rd, 2018, type:
+```
+> date 2018-03-01
+```
 
 # Requirements
 ```
