@@ -1,27 +1,49 @@
-# tgscraper
+# tgscrape
 Quick and dirty public Telegram group message scraper
 
 # Usage
+## To dump messages from a public group
 ```bash
 $ python3 tgscrape.py <groupname> [minid] [maxid]
 ```
-
-Example 1:
-```bash
-$ python3 tgscrape.py fun_with_friends 1 1000
-```
-dumps messages with ID 1 through 1000 from the group @fun_with_friends
-
-Example 2:
+### Examples
+To dump all messages in the group _fun_with_friends_ type:
 ```bash
 $ python3 tgscrape.py fun_with_friends
 ```
-dumps messages starting from ID 1 (default value) and stops when it finds 20 (default value) consecutive empty messages.
-
+You can specify the message id you want to start and stop. For instance, to dump messages with id's 1000 through 2000 type:
+```bash
+$ python3 tgscrape.py fun_with_friends 1000 2000
+```
+If you want to start at message id 1000 and dump all messages after it, just skip the last parameter:
+```bash
+$ python3 tgscrape.py fun_with_friends 1000
+```
 Retrieved messages are stored in json format in the `conversations` folder.
 
+## To read and search dumped messages
+```bash
+$ python3 tgscape_cli.py <groupname>
+```
+
+The following is the list and description of available commands:
+```
+Commands:
+    search <terms>              search words or strings (in quotes) in messages and names
+    all                         returns all dumped messages
+    last <num>                  returns last <num> messages (default: 10)
+    date <date>                 returns all messages for a date (format: YYYY-MM-DD)
+    wordcloud                   returns the top 20 words (wordlen > 3)
+    exit                        exits the program
+    help                        this
+```
+
 # Requirements
-BeautifulSoup4, requests
+```
+BeautifulSoup4
+requests
+```
+To install dependencies:
 ```bash
 $ pip install -r requirements.txt
 ```
