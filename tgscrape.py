@@ -26,9 +26,9 @@ def usage(pyfile):
     return 'Usage: {} <groupname> [minid] [maxid]'.format(pyfile)
 
 
-def get_sender(obj):
+def get_sender(obj, lclass):
     """ Retrieves the sender of a message """
-    author = obj.find('', class_=config.author_class)
+    author = obj.find('', class_=lclass)
     return_name = author.text
     if author.name == 'a':
         return_username = author['href'].split('/')[3]
@@ -43,10 +43,9 @@ def parse_message(soup):
     datetime = soup.find_all('time')[-1]['datetime']
     return_object = copy.deepcopy(config.message_object)
     if datetime:
-        (name, username) = get_sender(soup)
+        (return_object['name'], return_object['username']) = \
+            get_sender(soup, config.author_class)
         return_object['datetime'] = datetime
-        return_object['name'] = name
-        return_object['username'] = username
 
         msg = soup.find_all('', class_=config.text_class)
         if msg:
@@ -56,19 +55,28 @@ def parse_message(soup):
             else:
                 msg = msg[0].text
                 quote = None
-            
+
             return_object['msg'] = msg
             if quote:
                 return_object['quote'] = quote
-        
+
         service_msg = soup.find('', class_=config.service_class)
         if service_msg:
-            return_object['msg'] = '[SERVICE MESSAGE]'
+            return_object['msg'] = \
+                '|{}|'.format(service_msg.text
+                              if service_msg.text
+                              else 'SERVICE MESSAGE')
+
+        fwd = soup.find('', class_=config.forward_class)
+        if fwd:
+            (return_object['fwd_name'], return_object['fwd_username']) = \
+                get_sender(soup, config.forward_class)
 
         media = soup.find('', class_=config.photo_class) or \
             soup.find('', class_=config.video_class) or \
             soup.find('', class_=config.voice_class) or \
-            soup.find('', class_=config.link_class)
+            soup.find('', class_=config.link_class) or \
+            soup.find('', class_=config.sticker_class)
 
         if media:
             if media['class'][0] == config.photo_class:
@@ -84,12 +92,17 @@ def parse_message(soup):
                 title_class = soup.find('', class_=config.link_title_class)
                 description_class = soup.find('', class_=config.link_description_class)
                 preview_class = soup.find('', class_=config.link_preview_class)
+
                 return_object['link'] = {}
-                return_object['link']['title'] = title_class.text if title_class else ''
-                return_object['link']['description'] = description_class.text \
-                                                        if description_class else ''
-                return_object['link']['preview'] = preview_class['style'].split("'")[1] \
-                                                        if preview_class else ''
+                if title_class:
+                    return_object['link']['title'] = title_class.text
+                if description_class:
+                    return_object['link']['description'] = description_class.text
+                if preview_class:
+                    return_object['link']['preview'] = preview_class['style'].split("'")[1]
+            
+            if media['class'][0] == config.sticker_class:
+                return_object['photo'] = media['style'].split("'")[1]
 
         return return_object
 
@@ -103,24 +116,43 @@ def print_object(lobj):
     outputline = '[{}] {}{}: '.format(lobj['datetime'],
                                       lobj['name'],
                                       ' (@{})'.format(lobj['username']) if lobj['username'] else '')
-    outputline += '{}{}'.format('{{ {} }} '.format(lobj['quote']) if lobj['quote'] else '',
-                                lobj['msg'])
-    outputline += ' {}'.format(lobj['photo']) if lobj['photo'] else ''
-    outputline += ' {}'.format(lobj['video']) if lobj['video'] else ''
-    outputline += ' {}'.format(lobj['voice']) if lobj['voice'] else ''
-    outputline += ' <{}>'.format(" - ".join([lobj['link']['title'],
-                                             lobj['link']['description'],
-                                             lobj['link']['preview']
-                                            ])) if lobj['link']['title'] or \
-                                                   lobj['link']['description'] or \
-                                                   lobj['link']['preview'] \
-                                                   else ''
+
+    if lobj['fwd_name'] or lobj['fwd_username']:
+        outputline += '{ '
+        outputline += '{}{}: '.format(lobj['fwd_name'],
+                                      ' (@{})'.format(lobj['fwd_username'])
+                                      if lobj['fwd_username']
+                                      else '')
+
+    if lobj['quote']:
+        outputline += '{{ {} }} '.format(lobj['quote'])
+
+    outputline += lobj['msg']
+
+    if lobj['photo']:
+        outputline += ' {}'.format(lobj['photo'])
+
+    if lobj['video']:
+        outputline += ' {}'.format(lobj['video'])
+
+    if lobj['voice']:
+        outputline += ' {}'.format(lobj['voice'])
+
+    if lobj['link']['title'] or lobj['link']['description'] or lobj['link']['preview']:
+        link_msg = [lobj['link']['title'], lobj['link']['description'], lobj['link']['preview']]
+        link_msg = list(filter(None, link_msg))
+        link_msg = ' - '.join([link_msg])
+        if link_msg:
+            outputline += ' <{}>'.format(link_msg)
+
+    if lobj['fwd_name'] or lobj['fwd_username']:
+        outputline += ' }'
+
     print(outputline)
 
 
 def scrape_run(lgroupname, lmin_id, lmax_id, ldb):
     """ Main logic """
-    global dh
     msg_id = lmin_id
     cnt_err = 0
     url = 'https://t.me/{}/'.format(lgroupname)
@@ -172,7 +204,7 @@ try:
     exit_msg = scrape_run(groupname, min_id, max_id, database)
     exit_code = 0
 except KeyboardInterrupt:
-    (exit_code, exit_msg) = 1, 'Exiting...'
+    (exit_code, exit_msg) = 1, 'Stopped. Exiting...'
 except:
     (exit_code, exit_msg) = 1, 'Caught Exception. Exiting...'
 finally:

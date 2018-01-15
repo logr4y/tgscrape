@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+""" Configuration file """
+
 import json
 
 # script parameters
@@ -21,6 +23,8 @@ link_description_class = 'link_preview_description'
 link_preview_class = 'link_preview_right_image'
 author_class = 'tgme_widget_message_author_name'
 service_class = 'message_media_not_supported_label'
+sticker_class = 'tgme_widget_message_sticker'
+forward_class = 'tgme_widget_message_forwarded_from_name'
 
 # message object
 message_object = """
@@ -34,6 +38,8 @@ message_object = """
     "photo": "",
     "video": "",
     "voice": "",
+    "fwd_name": "",
+    "fwd_username": "",
     "link": {
         "title": "",
         "description": "",
