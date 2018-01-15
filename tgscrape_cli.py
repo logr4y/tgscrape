@@ -160,11 +160,11 @@ if __name__ == '__main__':
         DH = db.DB(GROUPNAME)
         DATABASE = DH.load_data(False)
         if not DATABASE:
-            raise FileNotFoundError("No conversations found")
+            raise FileNotFoundError("No conversations found for {}".format(GROUPNAME))
 
         main()
     except KeyboardInterrupt:
-        (exit_code, exit_msg) = 1, 'Stopped'
+        (EXIT_CODE, EXIT_MSG) = 1, 'Stopped'
         print('\b\b', end='')
     except BaseException as exception_msg:
         (EXIT_CODE, EXIT_MSG) = 1, 'ERROR: {}'.format(exception_msg)

@@ -6,6 +6,7 @@ def print_error(error_msg):
     """Prints an error"""
     print('ERROR: {}'.format(error_msg))
 
+
 def print_object(lobj):
     """ Print a message object """
     if 'deleted' in lobj.keys() and lobj['deleted'] == '1':
