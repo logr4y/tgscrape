@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""DB class"""
+
 import json
 import os
 import config
@@ -12,14 +16,15 @@ class DB:
         if not os.path.exists(config.output_folder):
             os.makedirs(config.output_folder)
 
-    def load_data(self):
+    def load_data(self, create=True):
         """ Returns current conversation """
         try:
             with open(self.logfile) as fp:
-                return json.load(fp)
+                return {int(key): value for key, value in json.load(fp).items()} 
         except IOError:
-            with open(self.logfile, 'w') as fp:
-                pass
+            if create:
+                with open(self.logfile, 'w') as fp:
+                    pass
             return {}
 
     def write_data(self, ldb):

@@ -18,6 +18,7 @@ import time
 import copy
 import requests
 from bs4 import BeautifulSoup
+from util import *
 import config
 import db
 
@@ -29,8 +30,10 @@ def usage(pyfile):
 def get_sender(obj, lclass):
     """ Retrieves the sender of a message """
     author = obj.find('', class_=lclass)
-    return_name = author.text
+    return_name = ''
     return_username = ''
+    if author:
+        return_name = author.text
     if author.name == 'a':
         return_username = author['href'].split('/')[3]
     return (return_name, return_username)
@@ -104,81 +107,33 @@ def parse_message(soup):
         return return_object
 
 
-def print_object(lobj):
-    """ Print a message object """
-    if 'deleted' in lobj.keys() and lobj['deleted'] == '1':
-        print('[deleted]')
-        return
-
-    outputline = '[{}] {}{}: '.format(lobj['datetime'],
-                                      lobj['name'],
-                                      ' (@{})'.format(lobj['username']) if lobj['username'] else '')
-
-    if lobj['fwd_name'] or lobj['fwd_username']:
-        outputline += '{ '
-        outputline += '{}{}: '.format(lobj['fwd_name'],
-                                      ' (@{})'.format(lobj['fwd_username'])
-                                      if lobj['fwd_username']
-                                      else '')
-
-    if lobj['quote']:
-        outputline += '{{ {} }} '.format(lobj['quote'])
-
-    outputline += lobj['msg']
-
-    if lobj['photo']:
-        outputline += ' {}'.format(lobj['photo'])
-
-    if lobj['video']:
-        outputline += ' {}'.format(lobj['video'])
-
-    if lobj['voice']:
-        outputline += ' {}'.format(lobj['voice'])
-
-    if lobj['link']['title'] or lobj['link']['description'] or lobj['link']['preview']:
-        link_msg = [
-            lobj['link']['title'],
-            lobj['link']['description'],
-            lobj['link']['preview']
-            ]
-        link_msg = list(filter(None, link_msg))
-        link_msg = ' - '.join(link_msg)
-        outputline += ' <{}>'.format(link_msg)
-
-    if lobj['fwd_name'] or lobj['fwd_username']:
-        outputline += ' }'
-
-    print(outputline)
-
-
 def scrape_run(lgroupname, lmin_id, lmax_id, ldb):
     """ Main logic """
     msg_id = lmin_id
     cnt_err = 0
     url = 'https://t.me/{}/'.format(lgroupname)
     while True:
-        db_index = str(msg_id)
-        if db_index not in ldb.keys():
-            r_url = url + db_index + '?embed=1'
+        if msg_id not in ldb.keys():
+            r_url = url + str(msg_id) + '?embed=1'
             response = requests.get(r_url)
             if len(response.text) > 3000:
                 cnt_err = 0
                 soup_object = BeautifulSoup(response.text, 'html.parser')
-                ldb[db_index] = parse_message(soup_object)
+                ldb[msg_id] = parse_message(soup_object)
             else:
-                ldb[db_index] = copy.deepcopy(config.message_object)
-                ldb[db_index]['deleted'] = '1'
+                ldb[msg_id] = copy.deepcopy(config.message_object)
+                ldb[msg_id]['deleted'] = '1'
                 cnt_err += 1
                 if cnt_err == config.max_err:
                     for id_to_delete in range(msg_id, msg_id - config.max_err, -1):
-                        del ldb[str(id_to_delete)]
-                    return '{} consecutive empty messages. Current ID: {}. Exiting...'.format(config.max_err, db_index)
+                        del ldb[id_to_delete]
+                    return '{} consecutive empty messages. Current ID: {}. Exiting...'.format(config.max_err, msg_id)
             time.sleep(config.sleeptime)
 
             if (msg_id - lmin_id + 1) % config.messages_dump_cnt == 0:
                 dh.write_data(ldb)
 
-        print_object(ldb[db_index])
+        print_object(ldb[msg_id])
 
         if msg_id == lmax_id:
             return 'All messages retrieved. Exiting...'
