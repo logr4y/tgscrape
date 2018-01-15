@@ -18,8 +18,8 @@ class DB:
             with open(self.logfile) as fp:
                 return json.load(fp)
         except IOError:
-            fp = open(self.logfile, 'w')
-            fp.close()
+            with open(self.logfile, 'w') as fp:
+                pass
             return {}
 
     def write_data(self, ldb):

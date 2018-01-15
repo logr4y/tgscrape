@@ -30,19 +30,17 @@ def get_sender(obj, lclass):
     """ Retrieves the sender of a message """
     author = obj.find('', class_=lclass)
     return_name = author.text
+    return_username = ''
     if author.name == 'a':
         return_username = author['href'].split('/')[3]
-    elif author.name == 'span':
-        return_username = ''
-
     return (return_name, return_username)
 
 
 def parse_message(soup):
     """ Parses a message, returns object """
     datetime = soup.find_all('time')[-1]['datetime']
-    return_object = copy.deepcopy(config.message_object)
     if datetime:
+        return_object = copy.deepcopy(config.message_object)
         (return_object['name'], return_object['username']) = \
             get_sender(soup, config.author_class)
         return_object['datetime'] = datetime
@@ -53,8 +51,8 @@ def parse_message(soup):
                 quote = msg[0].text
                 msg = msg[1].text
             else:
-                msg = msg[0].text
                 quote = None
+                msg = msg[0].text
 
             return_object['msg'] = msg
             if quote:
@@ -145,8 +143,7 @@ def print_object(lobj):
             ]
         link_msg = list(filter(None, link_msg))
         link_msg = ' - '.join(link_msg)
-        if link_msg:
-            outputline += ' <{}>'.format(link_msg)
+        outputline += ' <{}>'.format(link_msg)
 
     if lobj['fwd_name'] or lobj['fwd_username']:
         outputline += ' }'
@@ -178,10 +175,8 @@ def scrape_run(lgroupname, lmin_id, lmax_id, ldb):
                     return '{} consecutive empty messages. Current ID: {}. Exiting...'.format(config.max_err, db_index)
             time.sleep(config.sleeptime)
 
-            # write to disk after 100 (default value) messages
             if (msg_id - lmin_id + 1) % config.messages_dump_cnt == 0:
                 dh.write_data(ldb)
-
 
         print_object(ldb[db_index])
 
@@ -191,17 +186,17 @@ def scrape_run(lgroupname, lmin_id, lmax_id, ldb):
         msg_id += 1
 
 try:
-    print('> Telegram Public Groups Scraper\n')
+    print('> Telegram Public Groups Scraper', end='\n\n')
     argnum = len(sys.argv)
 
     if argnum < 2:
         print(usage(sys.argv[0]))
-        raise ValueError('\nNot enough parameters')
+        raise ValueError('Not enough parameters')
 
     groupname = sys.argv[1]
     min_id = int(sys.argv[2]) if argnum >= 3 else config.min_id
     max_id = int(sys.argv[3]) if argnum >= 4 else config.max_id
-    
+
     dh = db.DB(groupname)
     database = dh.load_data()
     exit_msg = scrape_run(groupname, min_id, max_id, database)
