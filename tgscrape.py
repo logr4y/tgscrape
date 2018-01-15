@@ -141,7 +141,7 @@ def print_object(lobj):
     if lobj['link']['title'] or lobj['link']['description'] or lobj['link']['preview']:
         link_msg = [lobj['link']['title'], lobj['link']['description'], lobj['link']['preview']]
         link_msg = list(filter(None, link_msg))
-        link_msg = ' - '.join([link_msg])
+        link_msg = ' - '.join(link_msg)
         if link_msg:
             outputline += ' <{}>'.format(link_msg)
 
@@ -205,8 +205,8 @@ try:
     exit_code = 0
 except KeyboardInterrupt:
     (exit_code, exit_msg) = 1, 'Stopped. Exiting...'
-except:
-    (exit_code, exit_msg) = 1, 'Caught Exception. Exiting...'
+except Exception as e:
+    (exit_code, exit_msg) = 1, 'ERROR: ' + e
 finally:
     print('\r  ')
     try:
