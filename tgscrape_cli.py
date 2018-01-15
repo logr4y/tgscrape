@@ -34,7 +34,7 @@ def search_cmd(search_args):
         search_entries = search_args.split(' ')
 
     results = []
-    for entry_key in sorted(DATABASE.keys()):
+    for entry_key in DATABASE.keys():
         msg = DATABASE[entry_key]
         search_content = msg['msg'] + \
                          msg['quote'] + \
@@ -51,7 +51,7 @@ def search_cmd(search_args):
                     results.append(entry_key)
 
     results = set(results)
-    for db_id in results:
+    for db_id in sorted(results):
         print_object(DATABASE[db_id])
     print("- Total Entries: {}".format(len(results)))
 
@@ -95,16 +95,16 @@ def print_date(ldate):
     date_regex = r'\d{4}-\d{2}-\d{2}'
     results = []
     if re.match(date_regex, ldate):
-        for entry_key in sorted(DATABASE.keys()):
+        for entry_key in DATABASE.keys():
             msg = DATABASE[entry_key]
             if msg['datetime'][0:10] == ldate:
                 results.append(entry_key)
     else:
         print_error("Invalid date format. Expected: YYYY-MM-DD")
 
-    for result in results:
+    for result in sorted(results):
         print_object(DATABASE[result])
-    print("- Total Entries: {}".format(len(results)))    
+    print("- Total Entries: {}".format(len(results)))
 
 
 def main():
