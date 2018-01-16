@@ -54,7 +54,6 @@ To read all messages written on January 3rd, 2018, type:
 # Requirements
 ```
 BeautifulSoup4
-requests
 ```
 To install dependencies:
 ```bash

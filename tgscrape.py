@@ -16,7 +16,7 @@ The loop stops when it finds 20 consecutive empty messages (defined by max_err i
 import sys
 import time
 import copy
-import requests
+import urllib.request
 from bs4 import BeautifulSoup
 from util import *
 import config
@@ -115,10 +115,11 @@ def scrape_run(lgroupname, lmin_id, lmax_id, ldb):
     while True:
         if msg_id not in ldb.keys():
             r_url = url + str(msg_id) + '?embed=1'
-            response = requests.get(r_url)
-            if len(response.text) > 3000:
+            with urllib.request.urlopen(r_url) as response:
+               response = response.read()
+            if len(response) > 3000:
                 cnt_err = 0
-                soup_object = BeautifulSoup(response.text, 'html.parser')
+                soup_object = BeautifulSoup(response, 'html.parser')
                 ldb[msg_id] = parse_message(soup_object)
             else:
                 ldb[msg_id] = copy.deepcopy(config.message_object)
