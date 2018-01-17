@@ -17,6 +17,7 @@ import sys
 import time
 import copy
 import urllib.request
+import datetime
 from bs4 import BeautifulSoup
 from util import *
 import config
@@ -107,6 +108,16 @@ def parse_message(soup):
         return return_object
 
 
+def guess_if_last(lmsg):
+    """Guesses if message is the last one in a group"""
+    msg_day = lmsg['datetime'].split('T')[0]
+    msg_day = datetime.datetime.strptime(msg_day, '%Y-%m-%d')
+    check_day = datetime.datetime.today() - datetime.timedelta(days=1)
+    if msg_day > check_day:
+        return True
+    return False
+
+
 def scrape_run(lgroupname, lmin_id, lmax_id, ldb):
     """ Main logic """
     msg_id = lmin_id
@@ -121,15 +132,21 @@ def scrape_run(lgroupname, lmin_id, lmax_id, ldb):
                 cnt_err = 0
                 soup_object = BeautifulSoup(response, 'html.parser')
                 ldb[msg_id] = parse_message(soup_object)
+                time.sleep(config.sleeptime)
             else:
                 ldb[msg_id] = copy.deepcopy(config.message_object)
                 ldb[msg_id]['deleted'] = '1'
-                cnt_err += 1
-                if cnt_err == config.max_err:
-                    for id_to_delete in range(msg_id, msg_id - config.max_err, -1):
-                        del ldb[id_to_delete]
-                    return '{} consecutive empty messages. Current ID: {}. Exiting...'.format(config.max_err, msg_id)
-            time.sleep(config.sleeptime)
+
+        if ldb[msg_id]['deleted'] == '1':
+            cnt_err += 1
+            if cnt_err == config.max_err:
+                for id_to_delete in range(msg_id, msg_id - config.max_err, -1):
+                    del ldb[id_to_delete]
+                last_id = msg_id - config.max_err - 1
+                if guess_if_last(ldb[last_id]):
+                    return '{} consecutive empty messages and last message is recent (maybe last?)'.format(config.max_err)
+                return '{} consecutive empty messages. Current ID: {}'.format(config.max_err, msg_id)
+
 
             if (msg_id - lmin_id + 1) % config.messages_dump_cnt == 0:
                 dh.write_data(ldb)
@@ -137,7 +154,7 @@ def scrape_run(lgroupname, lmin_id, lmax_id, ldb):
         print_object(ldb[msg_id])
 
         if msg_id == lmax_id:
-            return 'All messages retrieved. Exiting...'
+            return 'All messages retrieved'
 
         msg_id += 1
 
@@ -158,7 +175,7 @@ try:
     exit_msg = scrape_run(groupname, min_id, max_id, database)
     exit_code = 0
 except KeyboardInterrupt:
-    (exit_code, exit_msg) = 1, 'Stopped. Exiting...'
+    (exit_code, exit_msg) = 1, 'Stopped'
 except Exception as e:
     (exit_code, exit_msg) = 1, 'ERROR: {}'.format(e)
 finally:
@@ -167,5 +184,5 @@ finally:
         dh.write_data(database)
     except NameError:
         pass
-    print(exit_msg)
+    print('{}\nExiting...'.format(exit_msg))
     exit(exit_code)
