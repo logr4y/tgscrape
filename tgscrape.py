@@ -140,7 +140,7 @@ def scrape_run(lgroupname, lmin_id, lmax_id, ldb):
         if ldb[msg_id]['deleted'] == '1':
             cnt_err += 1
             if cnt_err == config.max_err:
-                for id_to_delete in range(msg_id, msg_id - config.max_err, -1):
+                for id_to_delete in range(msg_id, msg_id - config.max_err - 1, -1):
                     del ldb[id_to_delete]
                 last_id = msg_id - config.max_err - 1
                 if guess_if_last(ldb[last_id]):
