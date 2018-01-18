@@ -113,7 +113,7 @@ def guess_if_last(lmsg):
     msg_day = lmsg['datetime'].split('T')[0]
     msg_day = datetime.datetime.strptime(msg_day, '%Y-%m-%d')
     check_day = datetime.datetime.today() - datetime.timedelta(days=1)
-    if msg_day > check_day:
+    if msg_day >= check_day:
         return True
     return False
 
