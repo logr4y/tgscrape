@@ -42,12 +42,12 @@ def get_sender(obj, lclass):
 
 def parse_message(soup):
     """ Parses a message, returns object """
-    datetime = soup.find_all('time')[-1]['datetime']
-    if datetime:
+    m_datetime = soup.find_all('time')[-1]['datetime']
+    if m_datetime:
         return_object = copy.deepcopy(config.message_object)
         (return_object['name'], return_object['username']) = \
             get_sender(soup, config.author_class)
-        return_object['datetime'] = datetime
+        return_object['datetime'] = m_datetime
 
         msg = soup.find_all('', class_=config.text_class)
         if msg:
@@ -127,7 +127,7 @@ def scrape_run(lgroupname, lmin_id, lmax_id, ldb):
         if msg_id not in ldb.keys():
             r_url = url + str(msg_id) + '?embed=1'
             with urllib.request.urlopen(r_url) as response:
-               response = response.read()
+                response = response.read()
             if len(response) > 3000:
                 cnt_err = 0
                 soup_object = BeautifulSoup(response, 'html.parser')
